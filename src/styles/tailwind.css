@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -20,7 +20,8 @@
 
 @layer base {
   body {
-    direction: __MSG_ @@bidi_dir__;
+    /* Chrome extension i18n placeholder - will be replaced at runtime */
+    direction: ltr;
     color-scheme: light dark;
   }
 }

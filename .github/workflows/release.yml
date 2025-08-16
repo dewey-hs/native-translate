@@ -1,67 +1,76 @@
-name: Release Chrome Extension
+name: Build Chrome Extension
 
 on:
   push:
     tags:
-      - 'v*' # 触发条件：推送以 v 开头的tag
+      - 'v*'            # 只有当推送 v* 形式的 tag 时才触发
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # 获取完整的 git 历史用于版本号
-          
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        run_install: false
 
-      - name: Get version from git tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'pnpm'
 
-      - name: Update version in manifest.json
-        run: |
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" src/manifest.json
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install
+    - name: Lint code
+      run: pnpm run lint
 
-      - name: Create ZIP file
-        run: pnpm zip
+    - name: Build extension
+      run: pnpm run build
 
-      - name: Upload to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@v5.0.0
-        with:
-          file-path: Tiny-helmet.zip
-          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
-          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          publish: true
+    - name: Verify build output
+      run: |
+        echo "📦 Build output verification:"
+        ls -la dist/
+        echo ""
+        echo "📁 Checking for zip file:"
+        ls -la *.zip || echo "No zip file found in root"
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: Tiny-helmet.zip
-          name: Release ${{ env.VERSION }}
-          body: |
-            Release version ${{ env.VERSION }}
-            
-            Changes in this version:
-            - Please check the commit history for detailed changes
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Release (on tag push)
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "*.zip"
+        tag_name: ${{ github.ref_name }}               # 使用 tag 名称
+        name: "Release ${{ github.ref_name }} - ${{ github.event.head_commit.message }}"
+        body: |
+          ## 🚀 Chrome Extension Build
+
+          **Tag:** `${{ github.ref_name }}`
+          **Commit:** `${{ github.sha }}`
+          **Date:** ${{ github.event.head_commit.timestamp }}
+
+          ### 📋 Changes
+          ${{ github.event.head_commit.message }}
+
+          ### 📥 Installation
+          1. Download the `.zip` file above
+          2. Extract it to a folder
+          3. Open Chrome → `chrome://extensions/`
+          4. Enable "Developer mode"
+          5. Click "Load unpacked" → select the extracted folder
+
+          ### 🔧 Build Details
+          - **Node.js:** 22.x
+          - **Package Manager:** pnpm 9.15.1
+          - **Build Tool:** Rspack
+          - **Type:** Chrome Extension (Manifest V3)
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

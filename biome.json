@@ -1,8 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
-  "vcs": {
-    "enabled": true
-  },
+
   "files": {
     "ignore": [
       "dist",
@@ -33,11 +31,8 @@
     }
   },
   "javascript": {
-    "globals": [
-      "chrome",
-      "__DEV__"
-    ],
-    "jsxRuntime": "automatic",
+    "globals": ["chrome", "__DEV__"],
+    "jsxRuntime": "transparent",
     "formatter": {
       "quoteStyle": "single",
       "jsxQuoteStyle": "double",

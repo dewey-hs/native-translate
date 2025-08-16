@@ -1,16 +1,16 @@
-import * as React from 'react';
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { cn } from '@/utils/cn';
+import { cn } from '@/utils/cn'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import * as React from 'react'
 
 export interface Option {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 export interface AppSelectProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  options: Option[];
+  value: string
+  onValueChange: (value: string) => void
+  options: Option[]
 }
 
 export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
@@ -18,7 +18,7 @@ export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
         className={cn(
-          'w-full rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-900 px-3 py-2 text-left text-sm'
+          'w-full rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-900 px-3 py-2 text-left text-sm',
         )}
       >
         <SelectPrimitive.Value />
@@ -37,7 +37,5 @@ export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
     </SelectPrimitive.Root>
-  );
+  )
 }
-
-
